@@ -275,13 +275,13 @@ impl DeviceTrait for Device {
     fn supported_input_configs(
         &self,
     ) -> Result<Self::SupportedInputConfigs, SupportedStreamConfigsError> {
-        Device::supported_input_configs(self)
+        Device::supported_input_configs(self, None)
     }
 
     fn supported_output_configs(
         &self,
     ) -> Result<Self::SupportedOutputConfigs, SupportedStreamConfigsError> {
-        Device::supported_output_configs(self)
+        Device::supported_output_configs(self, None)
     }
 
     fn default_input_config(&self) -> Result<SupportedStreamConfig, DefaultStreamConfigError> {
@@ -396,12 +396,24 @@ impl Device {
             }
         })?;
 
+        // Only buffer size is extracted from audio unit and it does not make a difference if input or output
+        let audio_unit = match audio_unit_from_device(&self, false) {
+            Ok(x) => x,
+            Err(x) => {
+                return Err(DeviceNameError::BackendSpecific {
+                    err: BackendSpecificError {
+                        description: x.to_string(),
+                    },
+                })
+            }
+        };
+
         let input_configs = self
-            .supported_input_configs()
+            .supported_input_configs(Some(&audio_unit))
             .map(|configs| configs.count() as ChannelCount)
             .ok();
         let output_configs = self
-            .supported_output_configs()
+            .supported_output_configs(Some(&audio_unit))
             .map(|configs| configs.count() as ChannelCount)
             .ok();
 
@@ -462,6 +474,7 @@ impl Device {
     fn supported_configs(
         &self,
         scope: AudioObjectPropertyScope,
+        audio_unit: Option<&AudioUnit>,
     ) -> Result<SupportedOutputConfigs, SupportedStreamConfigsError> {
         let mut property_address = AudioObjectPropertyAddress {
             mSelector: kAudioDevicePropertyStreamConfiguration,
@@ -559,8 +572,12 @@ impl Device {
                     description: format!("unexpected scope (neither input nor output): {scope:?}"),
                 }),
             }?;
-            let audio_unit = audio_unit_from_device(self, input)?;
-            let buffer_size = get_io_buffer_frame_size_range(&audio_unit)?;
+            let buffer_size = if let Some(a) = audio_unit {
+                get_io_buffer_frame_size_range(a)?
+            } else {
+                let au = audio_unit_from_device(self, input)?;
+                get_io_buffer_frame_size_range(&au)?
+            };
 
             // Collect the supported formats for the device.
 
@@ -600,14 +617,16 @@ impl Device {
 
     fn supported_input_configs(
         &self,
+        audio_unit: Option<&AudioUnit>,
     ) -> Result<SupportedOutputConfigs, SupportedStreamConfigsError> {
-        self.supported_configs(kAudioObjectPropertyScopeInput)
+        self.supported_configs(kAudioObjectPropertyScopeInput, audio_unit)
     }
 
     fn supported_output_configs(
         &self,
+        audio_unit: Option<&AudioUnit>,
     ) -> Result<SupportedOutputConfigs, SupportedStreamConfigsError> {
-        self.supported_configs(kAudioObjectPropertyScopeOutput)
+        self.supported_configs(kAudioObjectPropertyScopeOutput, audio_unit)
     }
 
     fn default_config(
@@ -712,7 +731,7 @@ impl Device {
     /// Check if this device supports input (recording).
     fn supports_input(&self) -> bool {
         // Check if the device has input channels by trying to get its input configuration
-        self.supported_input_configs()
+        self.supported_input_configs(None)
             .map(|mut configs| configs.next().is_some())
             .unwrap_or(false)
     }
