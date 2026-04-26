@@ -178,6 +178,7 @@ impl DeviceTrait for Device {
             error_callback,
         )?;
 
+        audio_unit.initialize()?;
         audio_unit.start()?;
 
         Ok(Stream::new(StreamInner {
@@ -215,6 +216,7 @@ impl DeviceTrait for Device {
             error_callback,
         )?;
 
+        audio_unit.initialize()?;
         audio_unit.start()?;
 
         Ok(Stream::new(StreamInner {
@@ -284,10 +286,6 @@ impl StreamTrait for Stream {
 struct StreamInner {
     playing: bool,
     audio_unit: AudioUnit,
-}
-
-fn create_audio_unit() -> Result<AudioUnit, coreaudio::Error> {
-    AudioUnit::new(coreaudio::audio_unit::IOType::RemoteIO)
 }
 
 fn configure_for_recording(audio_unit: &mut AudioUnit) -> Result<(), coreaudio::Error> {
@@ -398,12 +396,10 @@ fn setup_stream_audio_unit(
         set_audio_session_buffer_size(buffer_size, config.sample_rate)?;
     }
 
-    let mut audio_unit = create_audio_unit()?;
+    let mut audio_unit = AudioUnit::new_uninitialized(coreaudio::audio_unit::IOType::RemoteIO)?;
 
     if is_input {
-        audio_unit.uninitialize()?;
         configure_for_recording(&mut audio_unit)?;
-        audio_unit.initialize()?;
     }
 
     // Set the stream format in interleaved mode
