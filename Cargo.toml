@@ -14,10 +14,7 @@ rust-version = "1.78"
 # Provides low-latency audio I/O by bypassing the Windows audio stack
 # Requires: ASIO drivers and LLVM/Clang for build-time bindings
 # See README for detailed setup instructions
-asio = [
-    "dep:asio-sys",
-    "dep:num-traits",
-]
+asio = ["dep:asio-sys", "dep:num-traits"]
 
 # JACK Audio Connection Kit backend
 # Provides low-latency connections between applications and audio hardware
@@ -92,7 +89,7 @@ jack = { version = "0.13", optional = true }
 
 [target.'cfg(target_vendor = "apple")'.dependencies]
 mach2 = "0.5"
-coreaudio-rs = { version = "0.14", default-features = false, features = [
+coreaudio-rs = { git = "https://github.com/nico-franco-gomez/coreaudio-rs-neu", branch = "uninitialized-audio-unit", default-features = false, features = [
     "core_audio",
     "audio_toolbox",
 ] }
