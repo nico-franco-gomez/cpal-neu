@@ -33,10 +33,10 @@ use objc2_core_audio::{
     kAudioDevicePropertyLatency, kAudioDevicePropertyNominalSampleRate,
     kAudioDevicePropertySafetyOffset, kAudioDevicePropertyStreamConfiguration,
     kAudioDevicePropertyStreamFormat, kAudioObjectPropertyClass, kAudioObjectPropertyElementMaster,
-    kAudioObjectPropertyScopeGlobal, kAudioObjectPropertyScopeInput,
-    kAudioObjectPropertyScopeOutput, AudioClassID, AudioDeviceID, AudioObjectGetPropertyData,
-    AudioObjectGetPropertyDataSize, AudioObjectID, AudioObjectPropertyAddress,
-    AudioObjectPropertyScope, AudioObjectSetPropertyData,
+    kAudioObjectPropertyElementName, kAudioObjectPropertyScopeGlobal,
+    kAudioObjectPropertyScopeInput, kAudioObjectPropertyScopeOutput, AudioClassID, AudioDeviceID,
+    AudioObjectGetPropertyData, AudioObjectGetPropertyDataSize, AudioObjectID,
+    AudioObjectPropertyAddress, AudioObjectPropertyScope, AudioObjectSetPropertyData,
 };
 use objc2_core_audio_types::{
     AudioBuffer, AudioBufferList, AudioStreamBasicDescription, AudioValueRange,
@@ -355,6 +355,10 @@ impl DeviceTrait for Device {
             error_callback,
             timeout,
         )
+    }
+
+    fn get_channel_name(&self, channel_index: u16, input: bool) -> Result<String, Error> {
+        Device::get_channel_name(self, channel_index, input)
     }
 }
 
@@ -725,6 +729,24 @@ impl Device {
             .map(|mut configs| configs.next().is_some())
             .unwrap_or(false)
     }
+
+    fn get_channel_name(&self, channel_index: u16, input: bool) -> Result<String, Error> {
+        if input && !self.supports_input() {
+            return Err(Error::with_message(
+                ErrorKind::InvalidInput,
+                "Device does not support input",
+            ));
+        }
+
+        if !input && !self.supports_output() {
+            return Err(Error::with_message(
+                ErrorKind::InvalidInput,
+                "Device does not support output",
+            ));
+        }
+
+        unsafe { get_channel_name_for_device(self.audio_device_id, channel_index, input) }
+    }
 }
 
 impl fmt::Debug for Device {
@@ -1052,4 +1074,42 @@ pub(crate) fn get_device_buffer_frame_size(
         Element::Output,
     )?;
     Ok(frames as usize)
+}
+
+unsafe fn get_channel_name_for_device(
+    device_id: AudioDeviceID,
+    channel_index: u16,
+    input: bool,
+) -> Result<String, Error> {
+    let mut channel_name: *mut CFString = std::ptr::null_mut();
+    let mut data_size = size_of::<*mut CFString>() as u32;
+
+    let property_address = AudioObjectPropertyAddress {
+        mSelector: kAudioObjectPropertyElementName,
+        mScope: if input {
+            kAudioObjectPropertyScopeInput
+        } else {
+            kAudioObjectPropertyScopeOutput
+        },
+        mElement: channel_index as u32,
+    };
+
+    let status = AudioObjectGetPropertyData(
+        device_id,
+        NonNull::from(&property_address),
+        0,
+        null(),
+        NonNull::from(&mut data_size),
+        NonNull::from(&mut channel_name).cast(),
+    );
+    check_os_status(status)?;
+
+    if !channel_name.is_null() {
+        Ok(CFString::wrap_under_create_rule(channel_name).to_string())
+    } else {
+        Err(Error::with_message(
+            ErrorKind::Other,
+            "channel name is null",
+        ))
+    }
 }
