@@ -414,6 +414,31 @@ pub trait DeviceTrait {
     where
         D: FnMut(&mut Data, &OutputCallbackInfo) + Send + 'static,
         E: FnMut(Error) + Send + 'static;
+
+    /// Obtain the associated string name for a channel index.
+    ///
+    /// This method is only available for CoreAudio and ASIO. Other hosts do not implement having
+    /// string names for their channels and will return a [`ErrorKind::UnsupportedOperation`] error.
+    ///
+    /// # Parameters
+    ///
+    /// * `channel_index` - Channel index to query name for.
+    /// * `input` - Whether the channel is an input or an output channel.
+    ///
+    /// # Errors
+    ///
+    /// - [`ErrorKind::UnsupportedOperation`] if the device does not support output streams.
+    /// - [`ErrorKind::DeviceNotAvailable`] if the device has been disconnected.
+    /// - [`ErrorKind::DeviceBusy`] if the device is temporarily in use by another application.
+    /// - [`ErrorKind::PermissionDenied`] if the process lacks permission to access the device.
+    /// - [`ErrorKind::InvalidInput`] if the configuration parameters are invalid.
+    ///
+    /// [`ErrorKind::UnsupportedOperation`]: crate::ErrorKind::UnsupportedOperation
+    /// [`ErrorKind::DeviceNotAvailable`]: crate::ErrorKind::DeviceNotAvailable
+    /// [`ErrorKind::DeviceBusy`]: crate::ErrorKind::DeviceBusy
+    /// [`ErrorKind::PermissionDenied`]: crate::ErrorKind::PermissionDenied
+    /// [`ErrorKind::InvalidInput`]: crate::ErrorKind::InvalidInput
+    fn get_channel_name(&self, channel_index: u16, input: bool) -> Result<String, Error>;
 }
 
 /// A stream created from [`Device`](DeviceTrait), with methods to control playback.
