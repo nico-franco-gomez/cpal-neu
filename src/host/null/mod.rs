@@ -104,6 +104,11 @@ impl DeviceTrait for Device {
     {
         unimplemented!()
     }
+
+    #[allow(unused_variables)]
+    fn get_channel_name(&self, channel_index: u16, input: bool) -> Result<String, Error> {
+        Err(Error::new(ErrorKind::UnsupportedOperation))
+    }
 }
 
 impl HostTrait for Host {

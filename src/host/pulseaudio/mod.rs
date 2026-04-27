@@ -524,6 +524,11 @@ impl DeviceTrait for Device {
             String::from_utf8_lossy(name.as_bytes()),
         ))
     }
+
+    #[allow(unused_variables)]
+    fn get_channel_name(&self, channel_index: u16, input: bool) -> Result<String, Error> {
+        Err(Error::new(ErrorKind::UnsupportedOperation))
+    }
 }
 
 fn make_sample_spec(config: StreamConfig, format: protocol::SampleFormat) -> protocol::SampleSpec {

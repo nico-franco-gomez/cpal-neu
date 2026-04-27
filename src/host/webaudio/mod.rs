@@ -576,6 +576,11 @@ impl DeviceTrait for Device {
             is_started,
         })
     }
+
+    #[allow(unused_variables)]
+    fn get_channel_name(&self, channel_index: u16, input: bool) -> Result<String, Error> {
+        Err(Error::new(ErrorKind::UnsupportedOperation))
+    }
 }
 
 impl Stream {

@@ -347,6 +347,11 @@ impl DeviceTrait for Device {
             build()
         }
     }
+
+    #[allow(unused_variables)]
+    fn get_channel_name(&self, channel_index: u16, input: bool) -> Result<String, Error> {
+        Err(Error::new(ErrorKind::UnsupportedOperation))
+    }
 }
 
 impl PartialEq for Device {
