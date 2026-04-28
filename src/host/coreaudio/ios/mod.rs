@@ -425,11 +425,10 @@ fn setup_stream_audio_unit(
     }
 
     let mut audio_unit = create_audio_unit()?;
+    audio_unit.uninitialize()?;
 
     if is_input {
-        audio_unit.uninitialize()?;
         configure_for_recording(&mut audio_unit)?;
-        audio_unit.initialize()?;
     }
 
     // Set the stream format in interleaved mode
@@ -443,6 +442,8 @@ fn setup_stream_audio_unit(
 
     let asbd = asbd_from_config(config, sample_format);
     audio_unit.set_property(kAudioUnitProperty_StreamFormat, scope, element, Some(&asbd))?;
+
+    audio_unit.initialize()?;
 
     Ok(audio_unit)
 }
