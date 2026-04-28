@@ -135,6 +135,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **CoreAudio**: Fix undefined behaviour and silent failure in loopback device creation.
 - **CoreAudio**: Poisoned stream locks now return `ErrorKind::StreamInvalidated` instead of 
   panicking.
+- **CoreAudio**: Fix crashes on certain drivers due to early initialization.
 - **JACK**: Fix input capture timestamp using callback execution time instead of cycle start.
 - **JACK**: Poisoned error callback mutex no longer silently drops subsequent error notifications.
 - **PulseAudio**: Poisoned locks now exit the thread gracefully instead of panicking.
