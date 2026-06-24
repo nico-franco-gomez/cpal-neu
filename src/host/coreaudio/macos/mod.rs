@@ -483,7 +483,7 @@ fn audio_unit_from_device(device: &Device, input: bool) -> Result<AudioUnit, cor
     } else {
         coreaudio::audio_unit::IOType::HalOutput
     };
-    let mut audio_unit = AudioUnit::new(output_type)?;
+    let mut audio_unit = AudioUnit::new_uninitialized(output_type)?;
 
     if input {
         // Enable input processing.
@@ -624,7 +624,11 @@ impl Device {
             add_disconnect_listener(&stream, error_callback_disconnect)?;
         }
 
-        stream.inner.lock().unwrap().audio_unit.start()?;
+        {
+            let mut stream_inner = stream.inner.lock().unwrap();
+            stream_inner.audio_unit.initialize()?;
+            stream_inner.audio_unit.start()?;
+        }
 
         Ok(stream)
     }
@@ -729,7 +733,11 @@ impl Device {
             add_disconnect_listener(&stream, error_callback_disconnect)?;
         }
 
-        stream.inner.lock().unwrap().audio_unit.start()?;
+        {
+            let mut stream_inner = stream.inner.lock().unwrap();
+            stream_inner.audio_unit.initialize()?;
+            stream_inner.audio_unit.start()?;
+        }
 
         Ok(stream)
     }

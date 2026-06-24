@@ -10,7 +10,10 @@ edition = "2021"
 rust-version = "1.70"
 
 [features]
-asio = ["asio-sys", "num-traits"] # Only available on Windows. See README for setup instructions.
+asio = [
+    "asio-sys",
+    "num-traits",
+] # Only available on Windows. See README for setup instructions.
 
 # Deprecated, the `oboe` backend has been removed
 oboe-shared-stdcxx = []
@@ -36,8 +39,8 @@ windows = { version = "0.54.0", features = [
     "Win32_System_SystemServices",
     "Win32_System_Variant",
     "Win32_Media_Multimedia",
-    "Win32_UI_Shell_PropertiesSystem"
-]}
+    "Win32_UI_Shell_PropertiesSystem",
+] }
 audio_thread_priority = { version = "0.33.0", optional = true }
 asio-sys = { version = "0.2", path = "asio-sys", optional = true }
 num-traits = { version = "0.2.6", optional = true }
@@ -52,7 +55,7 @@ jack = { version = "0.13.0", optional = true }
 mach2 = "0.4" # For access to mach_timebase type.
 
 [target.'cfg(target_vendor = "apple")'.dependencies]
-coreaudio-rs = { version = "0.13.0", default-features = false, features = [
+coreaudio-rs = { git = "https://github.com/nico-franco-gomez/coreaudio-rs-neu/", branch = "uninitialized-audio-unit", default-features = false, features = [
     "core_audio",
     "audio_toolbox",
 ] }
@@ -75,15 +78,36 @@ objc2-core-audio-types = { version = "0.3.1", default-features = false, features
 wasm-bindgen = { version = "0.2.89" }
 wasm-bindgen-futures = "0.4.33"
 js-sys = { version = "0.3.35" }
-web-sys = { version = "0.3.35", features = [ "AudioContext", "AudioContextOptions", "AudioBuffer", "AudioBufferSourceNode", "AudioNode",  "AudioDestinationNode", "Window", "AudioContextState"] }
+web-sys = { version = "0.3.35", features = [
+    "AudioContext",
+    "AudioContextOptions",
+    "AudioBuffer",
+    "AudioBufferSourceNode",
+    "AudioNode",
+    "AudioDestinationNode",
+    "Window",
+    "AudioContextState",
+] }
 
 [target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
 wasm-bindgen = { version = "0.2.58", optional = true }
 js-sys = { version = "0.3.35" }
-web-sys = { version = "0.3.35", features = [ "AudioContext", "AudioContextOptions", "AudioBuffer", "AudioBufferSourceNode", "AudioNode",  "AudioDestinationNode", "Window", "AudioContextState"] }
+web-sys = { version = "0.3.35", features = [
+    "AudioContext",
+    "AudioContextOptions",
+    "AudioBuffer",
+    "AudioBufferSourceNode",
+    "AudioNode",
+    "AudioDestinationNode",
+    "Window",
+    "AudioContextState",
+] }
 
 [target.'cfg(target_os = "android")'.dependencies]
-ndk = { version = "0.9", default-features = false, features = ["audio", "api-level-26"]}
+ndk = { version = "0.9", default-features = false, features = [
+    "audio",
+    "api-level-26",
+] }
 ndk-context = "0.1"
 jni = "0.21"
 num-derive = "0.4"
