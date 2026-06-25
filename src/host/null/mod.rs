@@ -7,7 +7,7 @@ use std::time::Duration;
 
 use crate::{
     traits::{DeviceTrait, HostTrait, StreamTrait},
-    Data, DeviceDescription, DeviceDescriptionBuilder, DeviceId, Error, FrameCount,
+    Data, DeviceDescription, DeviceDescriptionBuilder, DeviceId, Error, ErrorKind, FrameCount,
     InputCallbackInfo, OutputCallbackInfo, SampleFormat, StreamConfig, StreamInstant,
     SupportedStreamConfig, SupportedStreamConfigRange,
 };
